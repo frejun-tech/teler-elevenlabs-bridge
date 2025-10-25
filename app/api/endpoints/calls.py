@@ -3,11 +3,11 @@ import json
 
 from fastapi import APIRouter, HTTPException, WebSocket, status
 from fastapi.responses import JSONResponse
+from app.core.config import settings
 from pydantic import BaseModel
 
-from app.core.config import settings
 from teler.streams import StreamConnector, StreamType, StreamOp
-from app.utils.teler_client import TelerClient
+from teler import AsyncClient
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -98,15 +98,16 @@ async def initiate_call(call_request: CallRequest):
     Initiate a call using Teler SDK.
     """
     try:
-        teler_client = TelerClient(api_key=settings.teler_api_key)
-        call = await teler_client.create_call(
-            from_number=call_request.from_number,
-            to_number=call_request.to_number,
-            flow_url=f"https://{settings.server_domain}/api/v1/calls/flow",
-            status_callback_url=f"https://{settings.server_domain}/api/v1/webhooks/receiver",
-            record=True,
-        )
-        logger.info(f"Call created: {call}")
+        async with AsyncClient(api_key=settings.teler_api_key, timeout=10) as client:
+            call = await client.calls.create(
+                from_number=call_request.from_number,
+                to_number=call_request.to_number,
+                flow_url=f"https://{settings.server_domain}/api/v1/calls/flow",
+                status_callback_url=f"https://{settings.server_domain}/api/v1/webhooks/receiver",
+                record=True,
+            )
+            logger.info(f"Call created successfully: {call}")
+            
         return JSONResponse(content={"success": True, "call_id": call.id})
     except Exception as e:
         logger.error(f"Failed to create call: {e}")
