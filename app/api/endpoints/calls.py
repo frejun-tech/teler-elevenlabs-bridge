@@ -110,7 +110,7 @@ async def initiate_call(call_request: CallRequest):
             
         return JSONResponse(content={"success": True, "call_id": call.id})
     except Exception as e:
-        logger.error(f"Failed to create call: {e}")
+        logger.error(f"Failed to create call.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail="Failed to create call."

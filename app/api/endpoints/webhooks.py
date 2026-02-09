@@ -11,5 +11,5 @@ async def webhook_receiver(data: dict):
     """
     Log webhook payload from Teler.
     """
-    logger.info(f"--------Webhook Payload-------- {data}")
+    logger.info(f"--------Webhook Payload--------\n{data}")
     return JSONResponse(content="Webhook received.")
